@@ -1,0 +1,36 @@
+*.pyc
+*.pyo
+*.swp
+*~
+
+# Packages
+*.egg
+*.egg-info
+dist
+build/
+eggs
+sdist
+
+#Sphinx builds
+_build
+
+# Installer logs
+pip-log.txt
+
+# Flake8 violation file
+violations.flake8.txt
+
+# Unit test / coverage reports
+.coverage
+.tox
+nosetests.xml
+
+# Virtual environments
+virtualenv
+virtualenv*
+
+# package specific
+log/
+
+# PyCharm settings
+.idea
