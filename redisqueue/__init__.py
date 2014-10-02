@@ -28,7 +28,7 @@ import uuid
 import pickle
 
 
-class RedisQueue:
+class RedisQueue(object):
 
     def __init__(self, queue_name, namespace='redisqueue'):
         """
@@ -42,7 +42,7 @@ class RedisQueue:
         self.connected = False
         self.name = queue_name
         self.namespace = namespace
-        self.logger = logging.getLogger(self.__class__.__qualname__)
+        self.logger = logging.getLogger(self.__class__.__name__)
         self._key = '%s:%s' % (namespace, queue_name)
         self._lock_key = '%s:%s:lock' % (namespace, queue_name)
 
@@ -96,7 +96,7 @@ class RedisQueue:
         try:
             size = self.__db.llen(self._key)
         except redis.ConnectionError as e:
-            raise ConnectionError(repr(e))
+            raise redis.ConnectionError(repr(e))
 
         return size
 
