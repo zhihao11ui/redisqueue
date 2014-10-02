@@ -35,7 +35,7 @@ mock_queue = MockRedisQueue()
 class MockTask(AbstractTask):
 
     def __init__(self, mock_data, unique=False):
-        super().__init__(unique)
+        super(MockTask, self).__init__(unique)
         self.mock_data = mock_data
 
     def unique_hash(self):

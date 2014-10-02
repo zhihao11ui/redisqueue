@@ -26,7 +26,7 @@ import pickle
 class MockRedisQueue(RedisQueue):
 
     def __init__(self, queue_name="mock_queue", namespace="mock_queue"):
-        super().__init__(queue_name, namespace)
+        super(MockRedisQueue, self).__init__(queue_name, namespace)
         self._items = []
         self._item_lock = []
 
