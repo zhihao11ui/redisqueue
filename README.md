@@ -1,5 +1,3 @@
 # redisqueue
 
-This is a fork of retask
-
-Implemented support for unique constraints
+Very basic implementation of a Redis queue for Python

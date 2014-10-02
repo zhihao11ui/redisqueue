@@ -15,32 +15,36 @@ if sys.argv[-1] == 'publish':
     sys.exit()
 
 readme = open('README.md').read()
-#history = open('HISTORY.rst').read().replace('.. :changelog:', '')
+history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 
 setup(
     name='redisqueue',
     version=redisqueue.__version__,
     description='Simple Redis Queue Library',
-    #long_description=readme + '\n\n' + history,
+    long_description=readme + '\n\n' + history,
     author='Jeff Kehler',
     author_email='jeffrey.kehler@gmail.com',
     url='https://github.com/DevKeh/redisqueue',
-    packages=[
-        'redisqueue',
-    ],
-    package_dir={'redisqueue': 'redisqueue'},
+    packages=['redisqueue'],
     include_package_data=True,
-    install_requires=['redis'
-    ],
-    license="MIT",
+    install_requires=['redis'],
+    license=redisqueue.__license__,
     zip_safe=False,
     keywords='redis queue',
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
-        'Natural Language :: English',
+        'Operating System :: MacOS :: MacOS X',
+        'Operating System :: POSIX',
+        'Operating System :: Microsoft :: Windows',
         'Programming Language :: Python',
-    ],
-    #test_suite='tests',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+        'Topic :: Utilities',
+        'Topic :: Software Development :: Libraries :: Python Modules'],
+    test_suite='tests',
 )
