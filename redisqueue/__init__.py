@@ -20,7 +20,7 @@
 __author__ = 'Jeff Kehler'
 __license__ = 'MIT'
 __status__ = 'Development'
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 import redis
 import logging
