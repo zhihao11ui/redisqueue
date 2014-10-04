@@ -46,8 +46,8 @@ class RedisQueue(object):
         self._key = '%s:%s' % (namespace, queue_name)
         self._lock_key = '%s:%s:lock' % (namespace, queue_name)
 
-        self.logger.debug("Initializing Queue [key:{key}, lock_key:{lock_key}]".format(
-            key=self._key, lock_key=self._lock_key))
+        self.logger.debug("Initializing Queue [name: {queue_name}, namespace: {namespace}]".format(
+            queue_name=queue_name, namespace=namespace))
 
     def connect(self, **kwargs):
         """
@@ -163,7 +163,8 @@ class AbstractTask(object):
         :param unique: Boolean if Task should be unique
         """
 
-        self.uid = uuid.uuid4().urn
+        self.uid = str(uuid.uuid4().fields[-1])[:8]
+        # self.uid = uuid.uuid4().urn
         self.unique = unique
 
     @property
