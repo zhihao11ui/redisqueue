@@ -20,7 +20,7 @@
 __author__ = 'Jeff Kehler'
 __license__ = 'MIT'
 __status__ = 'Development'
-__version__ = '0.1.2'
+__version__ = '0.1.3'
 
 import redis
 import logging
@@ -30,12 +30,13 @@ import pickle
 
 class RedisQueue(object):
 
-    def __init__(self, queue_name, namespace='redisqueue'):
+    def __init__(self, queue_name, namespace='redisqueue', pickle_protocol_version=2):
         """
         Create a Redis Queue
 
         :param queue_name: Name of the queue
         :param namespace: Unique namespace for the queue
+        :param pickle_protocol_version: Pickle protocol version to use
         """
 
         self.__db = None
@@ -45,6 +46,7 @@ class RedisQueue(object):
         self.logger = logging.getLogger(self.__class__.__name__)
         self._key = '%s:%s' % (namespace, queue_name)
         self._lock_key = '%s:%s:lock' % (namespace, queue_name)
+        self.pickle_protocol_version = pickle_protocol_version
 
         self.logger.debug("Initializing Queue [name: {queue_name}, namespace: {namespace}]".format(
             queue_name=queue_name, namespace=namespace))
@@ -119,7 +121,7 @@ class RedisQueue(object):
             else:
                 raise TaskAlreadyInQueueException('Task already in Queue [{hash}]'.format(hash=task.unique_hash()))
 
-        self.__db.lpush(self._key, pickle.dumps(task))
+        self.__db.lpush(self._key, pickle.dumps(task, protocol=self.pickle_protocol_version))
 
         return True
 
@@ -154,13 +156,13 @@ class RedisQueue(object):
 
 
 class AbstractTask(object):
-    def __init__(self, unique):
+    def __init__(self, unique=False):
         """
         Abstract Task object to insert into Queue.
 
         This class should be subclassed to implement whatever features your Task needs
 
-        :param unique: Boolean if Task should be unique
+        :param unique: Boolean if Task should be unique, default: False
         """
 
         self.uid = str(uuid.uuid4().fields[-1])[:8]
