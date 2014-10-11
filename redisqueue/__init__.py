@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-# Permission is hereby granted, free of charge, to any person obtaining a copy of
-# this software and associated documentation files (the "Software"), to deal in
-# the Software without restriction, including without limitation the rights to
-# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
-# of the Software, and to permit persons to whom the Software is furnished to do
-# so, subject to the following conditions:
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -25,31 +25,32 @@ __version__ = '0.1.3'
 import redis
 import logging
 import uuid
-import pickle
+import json
 
 
 class RedisQueue(object):
 
-    def __init__(self, queue_name, namespace='redisqueue', pickle_protocol_version=2):
+    def __init__(self, queue_name, task_class, namespace='redisqueue'):
         """
         Create a Redis Queue
 
         :param queue_name: Name of the queue
+        :param task_class: Class to use for creating returned Tasks
         :param namespace: Unique namespace for the queue
-        :param pickle_protocol_version: Pickle protocol version to use
         """
 
         self.__db = None
         self.connected = False
         self.name = queue_name
         self.namespace = namespace
+        self.task_class = task_class
         self.logger = logging.getLogger(self.__class__.__name__)
         self._key = '%s:%s' % (namespace, queue_name)
         self._lock_key = '%s:%s:lock' % (namespace, queue_name)
-        self.pickle_protocol_version = pickle_protocol_version
 
-        self.logger.debug("Initializing Queue [name: {queue_name}, namespace: {namespace}]".format(
-            queue_name=queue_name, namespace=namespace))
+        self.logger.debug(
+            "Initializing Queue [name: {queue_name}, namespace: {namespace}]".
+            format(queue_name=queue_name, namespace=namespace))
 
     def connect(self, **kwargs):
         """
@@ -65,7 +66,7 @@ class RedisQueue(object):
 
         self.__db = redis.Redis(**kwargs)
         try:
-            info = self.__db.info()
+            self.__db.info()
             self.connected = True
         except redis.ConnectionError as e:
             self.logger.error("Failed to connect to Redis server: ", e)
@@ -99,7 +100,6 @@ class RedisQueue(object):
             size = self.__db.llen(self._key)
         except redis.ConnectionError as e:
             raise redis.ConnectionError(repr(e))
-
         return size
 
     def put(self, task):
@@ -119,9 +119,11 @@ class RedisQueue(object):
             if not self.__db.sismember(self._lock_key, task.unique_hash()):
                 self.__db.sadd(self._lock_key, task.unique_hash())
             else:
-                raise TaskAlreadyInQueueException('Task already in Queue [{hash}]'.format(hash=task.unique_hash()))
+                raise TaskAlreadyInQueueException(
+                    'Task already in Queue [{hash}]'.format(
+                        hash=task.unique_hash()))
 
-        self.__db.lpush(self._key, pickle.dumps(task, protocol=self.pickle_protocol_version))
+        self.__db.lpush(self._key, task.to_json())
 
         return True
 
@@ -134,7 +136,6 @@ class RedisQueue(object):
         :return: :class:`~redisqueue.AbstractTask` instance
         :exception: ConnectionError if queue is not connected
         """
-
         if not self.connected:
             raise QueueNotConnectedError("Queue is not Connected")
 
@@ -146,9 +147,10 @@ class RedisQueue(object):
         if not payload:
             return None
 
-        task = pickle.loads(payload[1])
+        task = self.task_class(payload[1])
 
-        # if task was marked as unique then lets remove the unique_hash from lock table
+        # if task was marked as unique then
+        # remove the unique_hash from lock table
         if task.unique:
             self.__db.srem(self._lock_key, task.unique_hash())
 
@@ -156,18 +158,21 @@ class RedisQueue(object):
 
 
 class AbstractTask(object):
-    def __init__(self, unique=False):
+    def __init__(self, json_data=None, unique=False):
         """
         Abstract Task object to insert into Queue.
 
-        This class should be subclassed to implement whatever features your Task needs
+        This class should be subclassed to implement whatever
+        features your Task needs
 
+        :param json_data: JSON data to initialize Task with
         :param unique: Boolean if Task should be unique, default: False
         """
 
         self.uid = str(uuid.uuid4().fields[-1])[:8]
-        # self.uid = uuid.uuid4().urn
         self.unique = unique
+        if json_data is not None:
+            self.from_json(json_data)
 
     @property
     def unique_hash(self):
@@ -176,8 +181,25 @@ class AbstractTask(object):
 
         :return: Computed Hash
         """
-
         raise NotImplementedError("unique_hash Method not implemented")
+
+    def to_json(self):
+        """
+        Json representation of task.
+
+        :return: JSON Object
+        """
+        return json.dumps(self.__dict__)
+
+    def from_json(self, json_data):
+        """
+        Load JSON data into this Task
+        """
+        try:
+            data = json_data.decode()
+        except Exception:
+            data = json_data
+        self.__dict__ = json.loads(data)
 
 
 class QueueNotConnectedError(Exception):
