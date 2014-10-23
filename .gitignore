@@ -34,3 +34,4 @@ log/
 
 # PyCharm settings
 .idea
+.ropeproject

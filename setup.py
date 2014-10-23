@@ -3,7 +3,6 @@
 
 import os
 import sys
-import redisqueue
 
 try:
     from setuptools import setup
@@ -19,7 +18,7 @@ history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 
 setup(
     name='redisqueue',
-    version=redisqueue.__version__,
+    version='0.1.5',
     description='Simple Redis Queue Library',
     long_description=readme + '\n\n' + history,
     author='Jeff Kehler',
@@ -28,7 +27,7 @@ setup(
     packages=['redisqueue'],
     include_package_data=True,
     install_requires=['redis'],
-    license=redisqueue.__license__,
+    license='MIT',
     zip_safe=False,
     keywords='redis queue',
     classifiers=[

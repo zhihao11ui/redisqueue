@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-# Permission is hereby granted, free of charge, to any person obtaining a copy of
-# this software and associated documentation files (the "Software"), to deal in
-# the Software without restriction, including without limitation the rights to
-# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
-# of the Software, and to permit persons to whom the Software is furnished to do
-# so, subject to the following conditions:
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -20,13 +20,12 @@
 __author__ = 'Jeff Kehler'
 
 from . import RedisQueue, QueueNotConnectedError, TaskAlreadyInQueueException
-import pickle
 
 
 class MockRedisQueue(RedisQueue):
 
-    def __init__(self, queue_name="mock_queue", namespace="mock_queue"):
-        super(MockRedisQueue, self).__init__(queue_name, namespace)
+    def __init__(self, queue_name, task_class, namespace="mock_queue"):
+        super(MockRedisQueue, self).__init__(queue_name, task_class, namespace)
         self._items = []
         self._item_lock = []
 
@@ -53,9 +52,11 @@ class MockRedisQueue(RedisQueue):
             if task.unique_hash() not in self._item_lock:
                 self._item_lock.append(task.unique_hash())
             else:
-                raise TaskAlreadyInQueueException('Task already in Queue [{hash}]'.format(hash=task.unique_hash()))
+                raise TaskAlreadyInQueueException(
+                    'Task already in Queue [{hash}]'.format(
+                        hash=task.unique_hash()))
 
-        self._items.append(pickle.dumps(task))
+        self._items.append(task.to_json())
 
         return True
 
@@ -66,7 +67,7 @@ class MockRedisQueue(RedisQueue):
         if self.qsize() == 0:
             return None
 
-        task = pickle.loads(self._items.pop())
+        task = self.task_class(self._items.pop())
 
         if task.unique:
             self._item_lock.remove(task.unique_hash())
