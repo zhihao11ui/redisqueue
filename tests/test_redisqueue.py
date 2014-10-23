@@ -18,7 +18,7 @@
 # SOFTWARE.
 
 __author__ = 'Jeff Kehler'
-do_live_testing = False
+do_live_testing = True
 live_host = 'localhost'
 live_port = 6379
 live_pass = None
@@ -97,6 +97,23 @@ def test_mock_queue_unique():
     assert mock_queue.qsize() == 2
 
 
+def test_mock_queue_get_put_same_task():
+    mock_queue.clear()
+
+    task = MockTask()
+    task.test = 'my_test'
+    mock_queue.put(task)
+
+    assert mock_queue.qsize() == 1
+
+    my_task = mock_queue.get()
+    assert my_task.test == 'my_test'
+    assert mock_queue.qsize() == 0
+
+    mock_queue.put(my_task)
+    assert mock_queue.qsize() == 1
+
+
 @pytest.mark.skipif(do_live_testing is False,
                     reason='Live Redis testing not enabled.')
 def test_live_queue():
@@ -142,3 +159,12 @@ def test_live_queue():
     assert live_queue.qsize == 1
 
     live_queue.clear()
+
+    # test getting and putting the same task into the queue
+    assert live_queue.qsize == 0
+
+    live_queue.put(task)
+    my_task = live_queue.get()
+    live_queue.put(my_task)
+
+    assert live_queue.qsize == 1
