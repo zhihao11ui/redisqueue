@@ -18,7 +18,7 @@
 # SOFTWARE.
 
 __author__ = 'Jeff Kehler'
-do_live_testing = True
+do_live_testing = False
 live_host = 'localhost'
 live_port = 6379
 live_pass = None
