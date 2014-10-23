@@ -24,3 +24,9 @@ History
 
 * Removed Pickle and reverted to using JSON intead due to compatibility
   issues between Python 2 -> Python 3.
+
+0.1.5 (2014-10-23)
+------------------
+
+* Removed setup.py import of redisqueue. Causing failed installation if
+  redis is not already installed.
