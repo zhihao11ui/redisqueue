@@ -59,6 +59,8 @@ def test_mock_queue_connection():
 
 
 def test_mock_queue_put_get():
+    mock_queue.connect()
+    mock_queue.clear()
     assert mock_queue.qsize() == 0
 
     task = MockTask()
@@ -75,6 +77,8 @@ def test_mock_queue_put_get():
 
 
 def test_mock_queue_unique():
+    mock_queue.connect()
+    mock_queue.clear()
     assert mock_queue.qsize() == 0
 
     task = MockTask()
@@ -98,6 +102,7 @@ def test_mock_queue_unique():
 
 
 def test_mock_queue_get_put_same_task():
+    mock_queue.connect()
     mock_queue.clear()
 
     task = MockTask()
